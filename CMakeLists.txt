@@ -28,4 +28,5 @@ target_include_directories(
   ${PROJECT_NAME}_interface
   INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>)
 
+add_subdirectory(third_party)
 add_subdirectory(src)

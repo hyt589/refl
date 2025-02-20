@@ -1,0 +1,9 @@
+[submodule "third_party/mstch"]
+	path = third_party/mstch
+	url = https://github.com/no1msd/mstch.git
+[submodule "Mustache"]
+	path = Mustache
+	url = https://github.com/kainjow/Mustache.git
+[submodule "third_party/Mustache"]
+	path = third_party/Mustache
+	url = https://github.com/kainjow/Mustache.git

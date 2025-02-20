@@ -6,6 +6,7 @@ add_executable(${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME} PRIVATE ${LLVM_INCLUDE_DIRS}
                            ${CLANG_INCLUDE_DIRS})
 
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_dependencies)
 target_link_libraries(${PROJECT_NAME} PRIVATE
   clangTooling
   clangFrontend

@@ -2,12 +2,25 @@
 
 #include <string>
 
-template <class T, class V>
-struct field_description_t {
+template<class T, class V = void>
+struct member_info {
     using value_type = V;
-    std::size_t id;
     std::string name;
-    V T::* ptr;
+    V T::* ptr = nullptr;
 };
 
-template <typename T> struct reflect {};
+template<typename T, typename Enable = void>
+struct reflect {
+private:
+    static constexpr auto size = sizeof(T); // always trigger instantiation if T is templated
+};
+
+namespace useless {
+
+template<typename T>
+struct reflect {
+private:
+    static constexpr auto size = sizeof(T); // always trigger instantiation if T is templated
+};
+
+}
