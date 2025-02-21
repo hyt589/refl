@@ -15,10 +15,6 @@ struct Derived : Base {
     void wtf(int damn) {}
 };
 
-// Trigger reflection for these types
-reflect<MyStruct> dummy1;
-reflect<Derived> dummy2;
-useless::reflect<MyStruct> dummy12;
 } // namespace name
 
 struct whatever {};
@@ -36,12 +32,21 @@ struct MyTemplateStruct {
         return a;
     }
     void params(const float p1, const name::Base& p2, const T1& p3) {}
+
+    void operator+(){};
 };
 
-reflect<MyTemplateStruct<name::Base, whatever>> dummy3;
+void f() {
+    using MyStructReflection = reflect<name::MyStruct>;
+    using BaseReflection = reflect<name::Base>;
+    using MyTemplateStructReflection = reflect<MyTemplateStruct<name::Base, whatever>>;
+    constexpr auto fields = MyTemplateStructReflection::fields();
+    constexpr auto methods = MyTemplateStructReflection::methods();
+    MyTemplateStruct<name::Base, whatever> instance;
+    constexpr auto sz = std::tuple_size_v<decltype(fields)>;
+    constexpr auto field = std::get<0>(fields);
+    auto method = std::get<4>(methods);
+    (instance.*method.func_ptr)();
+    [[maybe_unused]] auto v = (instance.*field.ptr);
 
-using t1 = decltype(&MyTemplateStruct<name::Base, whatever>::params);
-
-// MyTemplateStruct<name::Base, whatever> template_data;
-// reflect<decltype(template_data)> dummy4;
-reflect<float> dummy4;
+}

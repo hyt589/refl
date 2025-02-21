@@ -139,6 +139,12 @@ ReflectImpl(const T* class_decl, const clang::ASTContext& ctx, ReflectionData& r
     }
     namespace mstch = kainjow::mustache;
     for (const clang::CXXMethodDecl* method : class_decl->methods()) {
+        if (method->getKind() == clang::CXXMethodDecl::Kind::CXXConstructor) {
+            continue;
+        }
+        if (method->getKind() == clang::CXXMethodDecl::Kind::CXXDestructor) {
+            continue;
+        }
         MethodData method_data;
         method_data.name = method->getNameAsString();
         method_data.qualified_name = method->getQualifiedNameAsString();
@@ -173,18 +179,18 @@ std::string GenerateClassReflectionCode(const ReflectionData& reflection) {
 
     mstch::mustache reflection_template{R"(
 template <typename T> struct reflect<T, typename std::enable_if<std::is_same<T, {{{type_name}}}>::value, void >::type> {
-    constexpr const char * type_name() { return "{{{type_name}}}"; }
-    constexpr auto fields() {
+    static constexpr const char * type_name() { return "{{{type_name}}}"; }
+    static constexpr auto fields() {
         return std::make_tuple(
             {{#field_member_infos}}
-                member_info{ "{{field_name}}", &T::{{field_name}} } {{{delimiter}}}
+                member_info<T, decltype(T::{{field_name}})>{ "{{field_name}}", &T::{{field_name}} } {{{delimiter}}}
             {{/field_member_infos}}
         );
     }
-    constexpr auto methods() {
+    static constexpr auto methods() {
         return std::make_tuple(
             {{#method_member_infos}}
-                member_info{ "{{method_name}}", &T::{{method_name}} } {{{delimiter}}}
+                method_info<T, decltype(&T::{{method_name}})>{ "{{method_name}}", &T::{{method_name}} } {{{delimiter}}}
             {{/method_member_infos}}
         );
     }
@@ -249,10 +255,12 @@ std::string GenerateForwardDeclarationForType(const TypeData& type_data) {
 {{#openings}}
 namespace {{namespace}} {
 {{/openings}}
-
 {{#template_decl}}
 template <{{#template_params}}{{typename_or_type}} {{{param_name}}} {{delimiter}}{{/template_params}}> struct {{type_name}};
-template <>{{/template_decl}}struct {{{type_name}}};
+{{/template_decl}}
+{{^template_decl}}
+struct {{{type_name}}};
+{{/template_decl}}
 {{#closings}}
 }
 {{/closings}}
@@ -365,6 +373,13 @@ struct member_info {
     using value_type = V;
     std::string name;
     V T::* ptr = nullptr;
+};
+
+template<typename T, typename F>
+struct method_info {
+    using method_type = F;
+    std::string_view name;
+    F func_ptr;
 };
 
 template<typename T, typename Enable = void>
